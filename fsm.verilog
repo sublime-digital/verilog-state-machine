@@ -1,0 +1,66 @@
+module simple_fsm (
+    input wire clk,
+    input wire reset,
+    input wire in_signal,
+    output reg out_signal
+);
+
+// Define states using parameters for readability and maintainability
+parameter S0 = 2'b00; // State 0
+parameter S1 = 2'b01; // State 1
+parameter S2 = 2'b10; // State 2
+
+// Declare state registers
+reg [1:0] current_state;
+reg [1:0] next_state;
+
+// State register always block (sequential logic)
+// Updates current_state on positive clock edge or asynchronous reset
+always @(posedge clk or posedge reset) begin
+    if (reset) begin
+        current_state <= S0; // Reset to initial state
+    end else begin
+        current_state <= next_state; // Transition to next state
+    end
+end
+
+// Next state and output logic always block (combinational logic)
+// Determines next_state and out_signal based on current_state and inputs
+always @(*) begin
+    // Default assignments to avoid latches
+    next_state = current_state; 
+    out_signal = 1'b0; // Default output
+
+    case (current_state)
+        S0: begin
+            out_signal = 1'b0; // Output for State S0
+            if (in_signal) begin
+                next_state = S1; // Transition to S1 if in_signal is high
+            end else begin
+                next_state = S0; // Stay in S0 if in_signal is low
+            end
+        end
+        S1: begin
+            out_signal = 1'b1; // Output for State S1
+            if (in_signal) begin
+                next_state = S2; // Transition to S2 if in_signal is high
+            end else begin
+                next_state = S0; // Transition to S0 if in_signal is low
+            end
+        end
+        S2: begin
+            out_signal = 1'b0; // Output for State S2
+            if (in_signal) begin
+                next_state = S0; // Transition to S0 if in_signal is high
+            end else begin
+                next_state = S1; // Transition to S1 if in_signal is low
+            end
+        end
+        default: begin
+            next_state = S0; // Handle unexpected states (e.g., during simulation)
+            out_signal = 1'b0;
+        end
+    endcase
+end
+
+endmodule
